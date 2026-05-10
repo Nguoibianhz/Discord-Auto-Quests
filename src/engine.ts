@@ -38,6 +38,8 @@ export enum TaskType {
     STREAM_ON_DESKTOP = 'STREAM_ON_DESKTOP',
     PLAY_ACTIVITY = 'PLAY_ACTIVITY',
     WATCH_VIDEO_ON_MOBILE = 'WATCH_VIDEO_ON_MOBILE',
+    PLAY_ON_XBOX = 'PLAY_ON_XBOX',
+    PLAY_ON_PLAYSTATION = 'PLAY_ON_PLAYSTATION',
 }
 
 export interface QuestTaskConfig {
@@ -46,6 +48,11 @@ export interface QuestTaskConfig {
     tasks: Record<TaskType, QuestTask>;
     enrollment_url?: string;
     developer_application_id?: Snowflake;
+}
+
+export interface QuestTaskConfigV2 {
+    join_operator: string;
+    tasks: Record<TaskType, QuestTask & { type: string; applications?: { id: string }[] }>;
 }
 
 export interface QuestRewardMessages {
@@ -93,7 +100,8 @@ export interface QuestConfig {
     assets: QuestAssets;
     colors: QuestGradient;
     messages: QuestMessages;
-    task_config: QuestTaskConfig;
+    task_config?: QuestTaskConfig;
+    task_config_v2?: QuestTaskConfigV2;
     rewards_config: QuestRewardsConfig;
 }
 
@@ -195,22 +203,30 @@ export class Quest {
         this.raw.user_status = status;
     }
 
+    private getTasks(): Record<string, QuestTask> | null {
+        return (this.config.task_config_v2?.tasks ?? this.config.task_config?.tasks ?? null) as Record<string, QuestTask> | null;
+    }
+
     detectTaskType(): TaskType | null {
-        const tasks = this.config.task_config?.tasks;
+        const tasks = this.getTasks();
         if (!tasks) return null;
-        return [
-            TaskType.WATCH_VIDEO,
+
+        const priority = [
             TaskType.PLAY_ON_DESKTOP,
+            TaskType.WATCH_VIDEO,
+            TaskType.WATCH_VIDEO_ON_MOBILE,
             TaskType.STREAM_ON_DESKTOP,
             TaskType.PLAY_ACTIVITY,
-            TaskType.WATCH_VIDEO_ON_MOBILE,
-        ].find((t) => tasks[t] != null) ?? null;
+            TaskType.PLAY_ON_XBOX,
+            TaskType.PLAY_ON_PLAYSTATION,
+        ];
+        return priority.find((t) => tasks[t] != null) ?? null;
     }
 
     getTarget(): number {
         const taskType = this.detectTaskType();
         if (!taskType) return 900;
-        return this.config.task_config.tasks[taskType]?.target ?? 900;
+        return this.getTasks()?.[taskType]?.target ?? 900;
     }
 
     getProgress(): number {
@@ -400,18 +416,22 @@ export class QuestStore implements Iterable<Quest> {
                 });
             }
         } else if (taskType === TaskType.PLAY_ON_DESKTOP) {
+          
+            const taskDef = (quest.config.task_config_v2?.tasks ?? quest.config.task_config?.tasks)?.[TaskType.PLAY_ON_DESKTOP] as any;
+            const appId = taskDef?.applications?.[0]?.id ?? quest.config.application.id;
             while (!quest.isCompleted()) {
                 const res = await this.engine.rest.post(`/quests/${quest.id}/heartbeat`, {
-                    body: { application_id: quest.config.application.id, terminal: false },
+                    body: { application_id: appId, terminal: false },
                 });
                 quest.refreshStatus(res as any);
                 await this.sleep(60_000);
             }
             const res = await this.engine.rest.post(`/quests/${quest.id}/heartbeat`, {
-                body: { application_id: quest.config.application.id, terminal: true },
+                body: { application_id: appId, terminal: true },
             });
             quest.refreshStatus(res as any);
         } else {
+           
             return;
         }
 
