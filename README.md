@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge" alt="License"/>
 </p>
 
-<h1 align="center">🔮 HieuTool — Discord Quest Auto Claim</h1>
+<h1 align="center">🔮 HieuTool — Discord Quest [Updated]</h1>
 
 <p align="center">
   <b>Công cụ tự động hoàn thành và nhận thưởng Quest trên Discord</b><br/>
