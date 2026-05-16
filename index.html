@@ -278,6 +278,20 @@ header {
   color: #fff;
   border: 1.5px solid var(--border);
   flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+.account-avatar img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.account-avatar .avatar-initials {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .account-info { min-width: 0; }
 .account-name {
@@ -424,22 +438,57 @@ header {
 
 /* PROGRESS BAR */
 .progress-bar {
-  height: 3px;
+  height: 5px;
   background: var(--bg-4);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
   margin-top: 4px;
 }
 .progress-fill {
   height: 100%;
-  border-radius: 2px;
-  transition: width 1s ease;
+  border-radius: 3px;
+  transition: width .8s cubic-bezier(.4,0,.2,1);
   background: linear-gradient(to right, var(--cyan-dim), var(--cyan));
   box-shadow: 0 0 8px rgba(0,229,255,0.5);
+  position: relative;
+}
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 20px; height: 100%;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.3));
+  animation: shimmer 1.5s ease-in-out infinite;
 }
 .progress-fill.green {
   background: linear-gradient(to right, var(--green-dim), var(--green));
   box-shadow: 0 0 8px rgba(0,255,136,0.5);
+}
+.progress-fill.green::after { display: none; }
+@keyframes shimmer {
+  0% { opacity: 0; transform: translateX(-10px); }
+  50% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(10px); }
+}
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.progress-pct {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--cyan);
+  min-width: 34px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.progress-pct.done { color: var(--green); }
+.progress-vals {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text-3);
+  margin-top: 2px;
 }
 
 /* STATUS BADGES */
@@ -640,6 +689,35 @@ header {
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 2px; }
 
+/* COUNTDOWN TIMER in runner */
+.quest-countdown {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--amber);
+  white-space: nowrap;
+}
+.quest-countdown.done { color: var(--green); }
+
+/* ACCOUNT DETAIL LINE */
+.account-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+}
+.account-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text-3);
+  background: var(--bg-4);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 1px 5px;
+}
+.account-tag.green { color: var(--green-dim); border-color: rgba(0,255,136,0.2); }
+.account-tag.violet { color: #a78bfa; border-color: rgba(124,58,237,0.2); }
+
 /* DIVIDER */
 .divider {
   height: 1px;
@@ -698,7 +776,21 @@ header {
   transform: rotate(45deg);
 }
 
-/* QUEST RUNNER DETAIL */
+.account-card.active-run .account-avatar {
+  border-color: var(--cyan);
+  box-shadow: 0 0 12px rgba(0,229,255,0.5);
+}
+.account-card.success .account-avatar {
+  border-color: var(--green);
+}
+.account-card.failed .account-avatar {
+  border-color: var(--red);
+}
+
+/* RUNNER ACCOUNT overall progress */
+.runner-account.active-run .runner-header {
+  border-bottom-color: rgba(0,229,255,0.2);
+}
 .runner-account {
   background: var(--bg-2);
   border: 1px solid var(--border);
@@ -711,13 +803,38 @@ header {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid transparent;
   cursor: none;
+  user-select: none;
+  transition: background .15s, border-color .15s;
 }
-.runner-header:hover { background: rgba(0,229,255,0.03); }
-.runner-header .expand-icon { margin-left: auto; color: var(--text-3); transition: transform .2s; }
-.runner-header.expanded .expand-icon { transform: rotate(180deg); }
-.runner-quests { padding: 12px 16px; }
+.runner-header:hover { background: rgba(0,229,255,0.04); }
+.runner-account.expanded > .runner-header {
+  border-bottom-color: var(--border);
+}
+.runner-chevron {
+  color: var(--text-3);
+  font-size: 12px;
+  transition: transform .22s cubic-bezier(.4,0,.2,1), color .15s;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+.runner-account.expanded .runner-chevron {
+  transform: rotate(180deg);
+  color: var(--cyan-dim);
+}
+.runner-quests {
+  padding: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .3s cubic-bezier(.4,0,.2,1);
+}
+.runner-account.expanded .runner-quests {
+  max-height: 2000px;
+}
+.runner-quests-inner {
+  padding: 12px 16px;
+}
 
 /* GLITCH TEXT */
 .glitch {
@@ -859,12 +976,22 @@ select.form-input {
 
   <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; align-items: center;">
     <button class="btn btn-solid-green btn-lg" id="btn-run-all" onclick="runAllAccounts()">▶ RUN ALL ACCOUNTS</button>
-    <button class="btn btn-cyan" onclick="runSelected()">▷ RUN SELECTED</button>
     <button class="btn btn-red" id="btn-stop" onclick="stopAll()" style="display:none">■ STOP ALL</button>
-    <label class="checkbox-label" style="margin-left: auto;">
-      <input type="checkbox" id="opt-autoclaim" checked>
-      AUTO-CLAIM REWARDS
-    </label>
+  </div>
+
+  <!-- Overall progress bar -->
+  <div id="overall-progress-wrap" style="display:none;margin-bottom:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div class="section-title" style="margin-bottom:0">OVERALL PROGRESS</div>
+      <span id="overall-pct-label" style="font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--cyan)">0%</span>
+    </div>
+    <div class="progress-bar" style="height:8px;border-radius:4px">
+      <div class="progress-fill" id="overall-fill" style="width:0%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:5px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-3)">
+      <span id="overall-sub-left">0 quests done</span>
+      <span id="overall-sub-right">0 total</span>
+    </div>
   </div>
 
   <div class="section-title">ACCOUNT QUEST STATUS</div>
@@ -1112,16 +1239,19 @@ async function addAccount() {
   btn.textContent = 'VERIFYING...';
   btn.disabled = true;
 
-  const acc = { id: genId(), token, label, username: label || 'Unknown', userId: '...', orbs: null, status: 'idle', quests: [], lastSync: null };
+  const acc = { id: genId(), token, label, username: label || 'Unknown', displayName: label || 'Unknown', userId: '...', avatarHash: null, orbs: null, status: 'idle', quests: [], lastSync: null };
 
   if (verify) {
     try {
       const info = await discordGet(token, '/users/@me');
-      acc.username = info.username + '#' + (info.discriminator || '0');
+      const displayName = info.global_name || info.username;
+      acc.username = info.username + (info.discriminator && info.discriminator !== '0' ? '#' + info.discriminator : '');
+      acc.displayName = displayName;
       acc.userId = info.id;
-      acc.label = label || acc.username;
-      log(`Account verified: ${acc.username} (${acc.userId})`, 'success');
-      toast(`✔ ${acc.username} added`, 'success');
+      acc.avatarHash = info.avatar || null;
+      acc.label = label || displayName;
+      log(`Account verified: ${acc.displayName} (${acc.userId})`, 'success');
+      toast(`✔ ${acc.displayName} added`, 'success');
     } catch(e) {
       log(`Failed to verify token: ${e.message}`, 'error');
       toast('Invalid token or API error', 'error');
@@ -1164,6 +1294,25 @@ function confirmDelete() {
   pendingDeleteId = null;
 }
 
+function avatarUrl(acc) {
+  if (acc.avatarHash && acc.userId) {
+    return `https://cdn.discordapp.com/avatars/${acc.userId}/${acc.avatarHash}.webp?size=80`;
+  }
+  return null;
+}
+
+function avatarHtml(acc, size = 40) {
+  const url = avatarUrl(acc);
+  const initials = ((acc.displayName || acc.username || '?').slice(0, 2)).toUpperCase();
+  if (url) {
+    return `<div class="account-avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.35)}px">
+      <img src="${url}" alt="${escHtml(initials)}" onerror="this.style.display='none';this.nextSibling.style.display='flex'">
+      <span class="avatar-initials" style="display:none">${initials}</span>
+    </div>`;
+  }
+  return `<div class="account-avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.35)}px"><span class="avatar-initials">${initials}</span></div>`;
+}
+
 function renderAccounts() {
   const list = document.getElementById('accounts-list');
   document.getElementById('tab-badge-accounts').textContent = accounts.length;
@@ -1175,16 +1324,21 @@ function renderAccounts() {
     return;
   }
   list.innerHTML = accounts.map(acc => {
-    const avatar = (acc.username || '?').slice(0, 2).toUpperCase();
     const statusCls = acc.status === 'running' ? 'active-run' : acc.status === 'done' ? 'success' : acc.status === 'error' ? 'failed' : '';
     const orbsText = acc.orbs !== null ? `🔮 ${acc.orbs.toLocaleString()}` : '—';
     const lastSync = acc.lastSync ? new Date(acc.lastSync).toLocaleTimeString() : 'Never';
+    const displayName = acc.displayName || acc.username || 'Unknown';
+    const questCount = acc.quests?.length ?? 0;
     return `
     <div class="account-card ${statusCls}" id="card-${acc.id}" style="margin-bottom: 8px;">
-      <div class="account-avatar">${avatar}</div>
+      ${avatarHtml(acc, 40)}
       <div class="account-info">
-        <div class="account-name">${escHtml(acc.label || acc.username)}</div>
-        <div class="account-id">${escHtml(acc.userId || 'ID not fetched')} · Sync: ${lastSync}</div>
+        <div class="account-name">${escHtml(acc.label || displayName)}</div>
+        <div class="account-meta">
+          <span class="account-tag">${escHtml(acc.userId && acc.userId !== '...' ? acc.userId : 'ID unknown')}</span>
+          ${acc.username && acc.username !== displayName ? `<span class="account-tag">${escHtml(acc.username)}</span>` : ''}
+          <span class="account-tag">sync ${lastSync}</span>
+        </div>
       </div>
       <div>
         <div class="account-orbs">${orbsText}</div>
@@ -1205,38 +1359,34 @@ function getStatusBadgeText(status) {
 }
 
 // ============ DISCORD API ============
-async function discordGet(token, path) {
-  const res = await fetch('https://discord.com/api/v10' + path, {
-    headers: {
-      'Authorization': token,
-      'Content-Type': 'application/json',
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9215 Chrome/138.0.7204.251 Electron/37.6.0 Safari/537.36',
-      'X-Discord-Locale': 'en-US',
-      'X-Discord-Timezone': 'Asia/Saigon',
-    }
+const DISCORD_HEADERS = (token) => ({
+  'Authorization': token,
+  'Content-Type': 'application/json',
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9215 Chrome/138.0.7204.251 Electron/37.6.0 Safari/537.36',
+  'X-Discord-Locale': 'en-US',
+  'X-Discord-Timezone': 'Asia/Saigon',
+});
+
+async function discordGet(token, path, version = 'v10') {
+  const res = await fetch(`https://discord.com/api/${version}${path}`, {
+    headers: DISCORD_HEADERS(token)
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `HTTP ${res.status}`);
+    throw new Error(err.message || `${res.status}: ${res.statusText}`);
   }
   return res.json();
 }
 
-async function discordPost(token, path, body) {
-  const res = await fetch('https://discord.com/api/v10' + path, {
+async function discordPost(token, path, body, version = 'v10') {
+  const res = await fetch(`https://discord.com/api/${version}${path}`, {
     method: 'POST',
-    headers: {
-      'Authorization': token,
-      'Content-Type': 'application/json',
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9215 Chrome/138.0.7204.251 Electron/37.6.0 Safari/537.36',
-      'X-Discord-Locale': 'en-US',
-      'X-Discord-Timezone': 'Asia/Saigon',
-    },
+    headers: DISCORD_HEADERS(token),
     body: JSON.stringify(body)
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `HTTP ${res.status}`);
+    throw new Error(err.message || `${res.status}: ${res.statusText}`);
   }
   return res.json();
 }
@@ -1247,17 +1397,26 @@ async function fetchBalance(id) {
   if (!acc) return;
   acc.status = 'syncing';
   renderAccounts();
-  log(`Fetching balance for ${acc.username}...`, 'info');
+  log(`Fetching balance for ${acc.displayName || acc.username}...`, 'info');
   try {
-    const data = await discordGet(acc.token, '/users/@me/virtual-currency/balance');
+    // Refresh user info (avatar may have changed)
+    try {
+      const info = await discordGet(acc.token, '/users/@me');
+      acc.displayName = info.global_name || info.username;
+      acc.username = info.username + (info.discriminator && info.discriminator !== '0' ? '#' + info.discriminator : '');
+      acc.userId = info.id;
+      acc.avatarHash = info.avatar || null;
+    } catch {}
+
+    const data = await discordGet(acc.token, '/users/@me/virtual-currency/balance', 'v9');
     acc.orbs = data.balance;
     acc.lastSync = Date.now();
     acc.status = 'idle';
-    log(`[${acc.username}] Orbs: ${acc.orbs}`, 'success');
-    toast(`${acc.username}: 🔮 ${acc.orbs} Orbs`, 'success');
+    log(`[${acc.displayName || acc.username}] Orbs: ${acc.orbs}`, 'success');
+    toast(`${acc.displayName || acc.username}: 🔮 ${acc.orbs} Orbs`, 'success');
   } catch(e) {
     acc.status = 'error';
-    log(`[${acc.username}] Balance error: ${e.message}`, 'error');
+    log(`[${acc.displayName || acc.username}] Balance error: ${e.message}`, 'error');
     toast(`Balance error: ${e.message}`, 'error');
   }
   saveState();
@@ -1329,6 +1488,16 @@ async function claimReward(token, questId) {
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function fmtTime(sec) {
+  if (sec <= 0) return '✔ DONE';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
 
 // Per-account runner state for live UI
 let runnerState = {}; // { accId: { quests: [{ id, name, taskType, target, progress, status, reward }] } }
@@ -1415,19 +1584,17 @@ async function executeQuest(token, quest, accId) {
 
   setStatus('done', getTarget(quest, taskType));
 
-  // Claim
-  if (document.getElementById('opt-autoclaim')?.checked) {
-    try {
-      await discordPost(token, `/quests/${qId}/claim-reward`, {});
-      setStatus('claimed');
-      const reward = getRewardLabel(quest);
-      log(`[${accId}] ★ Claimed: ${name} — ${reward}`, 'success');
-      addActivity(accId, name, reward, 'claimed');
-      questsDone++;
-      updateDashboardStats();
-    } catch(e) {
-      log(`[${accId}] Claim error: ${e.message}`, 'warn');
-    }
+  // Claim reward
+  try {
+    await discordPost(token, `/quests/${qId}/claim-reward`, {});
+    setStatus('claimed');
+    const reward = getRewardLabel(quest);
+    log(`[${accId}] ★ Claimed: ${name} — ${reward}`, 'success');
+    addActivity(accId, name, reward, 'claimed');
+    questsDone++;
+    updateDashboardStats();
+  } catch(e) {
+    log(`[${accId}] Claim error: ${e.message}`, 'warn');
   }
 }
 
@@ -1493,7 +1660,7 @@ async function runAccount(accId) {
 
     // Refresh balance
     try {
-      const bal = await discordGet(acc.token, '/users/@me/virtual-currency/balance');
+      const bal = await discordGet(acc.token, '/users/@me/virtual-currency/balance', 'v9');
       const gained = acc.orbs !== null ? bal.balance - acc.orbs : 0;
       if (gained > 0) {
         totalOrbsGained += gained;
@@ -1578,64 +1745,130 @@ function renderRunner() {
   renderRunnerList();
 }
 
+function updateOverallProgress() {
+  const wrap = document.getElementById('overall-progress-wrap');
+  if (!wrap) return;
+  let total = 0, done = 0;
+  for (const id in runnerState) {
+    const qs = runnerState[id]?.quests || [];
+    total += qs.length;
+    done += qs.filter(q => q.status === 'claimed' || q.status === 'done').length;
+  }
+  if (total === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  const pct = Math.round((done / total) * 100);
+  const fill = document.getElementById('overall-fill');
+  const label = document.getElementById('overall-pct-label');
+  const subL = document.getElementById('overall-sub-left');
+  const subR = document.getElementById('overall-sub-right');
+  if (fill) { fill.style.width = pct + '%'; fill.className = 'progress-fill' + (pct === 100 ? ' green' : ''); }
+  if (label) { label.textContent = pct + '%'; label.style.color = pct === 100 ? 'var(--green)' : 'var(--cyan)'; }
+  if (subL) subL.textContent = `${done} quest${done !== 1 ? 's' : ''} done`;
+  if (subR) subR.textContent = `${total} total`;
+}
+
 function renderRunnerList() {
   const list = document.getElementById('runner-list');
   if (!list) return;
 
+  // Remember which accounts are expanded
+  const expanded = new Set(
+    Array.from(document.querySelectorAll('.runner-account.expanded')).map(el => el.dataset.id)
+  );
+  // Auto-expand running accounts
+  accounts.filter(a => a.status === 'running').forEach(a => expanded.add(a.id));
+
   const accCards = accounts.map(acc => {
     const rs = runnerState[acc.id];
     const statusCls = acc.status === 'running' ? 'active-run' : acc.status === 'done' ? 'success' : acc.status === 'error' ? 'failed' : '';
+    const isExpanded = expanded.has(acc.id);
     const orbText = acc.orbs !== null ? `🔮 ${acc.orbs.toLocaleString()}` : '—';
+    const displayName = acc.displayName || acc.username || 'Unknown';
 
     let questsHtml = '';
     if (rs && rs.quests.length > 0) {
-      questsHtml = `<div class="runner-quests">
+      questsHtml = `<div class="runner-quests"><div class="runner-quests-inner">
         <table class="quest-table" style="font-size:12px;">
-          <thead><tr><th></th><th>QUEST</th><th>TYPE</th><th>REWARD</th><th>PROGRESS</th><th>STATUS</th></tr></thead>
+          <thead><tr><th>QUEST</th><th style="width:46px">TYPE</th><th style="width:120px">REWARD</th><th style="min-width:150px">PROGRESS</th><th style="width:76px">ETA</th><th style="width:88px">STATUS</th></tr></thead>
           <tbody>
           ${rs.quests.map(q => {
             const pct = q.target > 0 ? Math.min(100, Math.round((q.progress / q.target) * 100)) : 0;
+            const isDone = q.status === 'claimed' || q.status === 'done';
             const badge = statusBadge(q.status);
+            const remaining = Math.max(0, q.target - q.progress);
+            const etaStr = isDone
+              ? `<span class="quest-countdown done">✔ DONE</span>`
+              : q.status === 'running'
+                ? `<span class="quest-countdown">${fmtTime(remaining)}</span>`
+                : `<span style="color:var(--text-3);font-family:'Share Tech Mono',monospace;font-size:11px">—</span>`;
             return `<tr>
-              <td><input type="checkbox" class="acc-check" data-id="${acc.id}" style="accent-color:var(--cyan)"></td>
-              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(q.name)}">${escHtml(q.name.slice(0,28))}${q.name.length>28?'..':''}</td>
+              <td style="max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(q.name)}">${escHtml(q.name.length > 30 ? q.name.slice(0,29)+'..' : q.name)}</td>
               <td style="text-align:center">${q.icon}</td>
               <td style="color:var(--pink);font-family:'Share Tech Mono',monospace;font-size:11px">${escHtml(q.reward)}</td>
-              <td style="min-width:100px">
-                <div style="display:flex;align-items:center;gap:6px">
-                  <div class="progress-bar" style="flex:1"><div class="progress-fill ${q.status==='claimed'||q.status==='done'?'green':''}" style="width:${pct}%"></div></div>
-                  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-3)">${pct}%</span>
+              <td>
+                <div class="progress-row">
+                  <div class="progress-bar" style="flex:1"><div class="progress-fill ${isDone?'green':''}" style="width:${pct}%"></div></div>
+                  <span class="progress-pct ${isDone?'done':''}">${pct}%</span>
                 </div>
+                <div class="progress-vals">${q.progress.toLocaleString()} / ${q.target.toLocaleString()}</div>
               </td>
+              <td>${etaStr}</td>
               <td>${badge}</td>
             </tr>`;
           }).join('')}
           </tbody>
         </table>
-      </div>`;
+      </div></div>`;
     } else if (acc.status === 'running') {
-      questsHtml = `<div style="padding:12px 16px;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--cyan-dim)">Loading quests...</div>`;
+      questsHtml = `<div class="runner-quests"><div class="runner-quests-inner"><span class="pulse-dot" style="display:inline-block;margin-right:8px;color:var(--cyan)"></span><span style="font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--cyan-dim)">Loading quests...</span></div></div>`;
+    } else if (acc.status === 'done') {
+      questsHtml = `<div class="runner-quests"><div class="runner-quests-inner" style="color:var(--green-dim);font-family:'Share Tech Mono',monospace;font-size:12px;">✔ All quests completed for this session.</div></div>`;
+    } else {
+      questsHtml = `<div class="runner-quests"><div class="runner-quests-inner" style="color:var(--text-3);font-family:'Share Tech Mono',monospace;font-size:11px;">— Press ▶ RUN ALL ACCOUNTS to start. —</div></div>`;
     }
 
+    const totalQ = rs?.quests?.length ?? 0;
+    const doneQ = rs?.quests?.filter(q => q.status === 'claimed' || q.status === 'done').length ?? 0;
+    // If account is done but had 0 pending quests (all already completed), show 100%
+    const allDone = acc.status === 'done' && totalQ === 0;
+    const accPct = allDone ? 100 : (totalQ > 0 ? Math.round((doneQ / totalQ) * 100) : null);
+    const showPct = accPct !== null;
+    const pctColor = accPct === 100 ? 'var(--green)' : 'var(--cyan)';
+    const pctFillClass = accPct === 100 ? 'green' : '';
+
     return `
-    <div class="runner-account ${statusCls}" id="runner-${acc.id}">
-      <div class="runner-header">
-        <div class="account-avatar" style="width:32px;height:32px;font-size:12px">${(acc.username||'?').slice(0,2).toUpperCase()}</div>
+    <div class="runner-account ${statusCls}${isExpanded ? ' expanded' : ''}" id="runner-${acc.id}" data-id="${acc.id}">
+      <div class="runner-header" onclick="toggleRunnerAccount('${acc.id}')">
+        ${avatarHtml(acc, 32)}
         <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(acc.label||acc.username)}</div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-3)">${escHtml(acc.userId||'')}</div>
+          <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(acc.label || displayName)}</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-3)">${escHtml(acc.userId || '—')}</div>
         </div>
-        <div style="text-align:right;margin-right:12px">
+        ${showPct ? `<div style="min-width:94px;margin-right:8px">
+          <div class="progress-row" style="gap:6px">
+            <div class="progress-bar" style="flex:1;height:4px"><div class="progress-fill ${pctFillClass}" style="width:${accPct}%"></div></div>
+            <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:${pctColor};min-width:28px;text-align:right">${accPct}%</span>
+          </div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-3);text-align:right;margin-top:2px">${allDone ? 'all done ✓' : doneQ+'/'+totalQ+' quests'}</div>
+        </div>` : ''}
+        <div style="text-align:right;margin-right:10px">
           <div style="font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--violet)">${orbText}</div>
-          <div style="font-size:10px;color:var(--text-3);font-family:'Share Tech Mono',monospace">${rs ? rs.quests.length + ' quests' : 'not run'}</div>
         </div>
         ${getStatusBadge(acc.status)}
+        <span class="runner-chevron">▼</span>
       </div>
       ${questsHtml}
     </div>`;
   }).join('');
 
   list.innerHTML = accCards;
+  updateOverallProgress();
+}
+
+function toggleRunnerAccount(id) {
+  const el = document.getElementById('runner-' + id);
+  if (!el) return;
+  el.classList.toggle('expanded');
 }
 
 function getStatusBadge(s) {
@@ -1723,7 +1956,7 @@ function toggleEye(inputId, btn) {
 }
 
 function exportAccounts() {
-  const data = accounts.map(a => ({ token: a.token, label: a.label, username: a.username, userId: a.userId }));
+  const data = accounts.map(a => ({ token: a.token, label: a.label, username: a.username, displayName: a.displayName, userId: a.userId, avatarHash: a.avatarHash }));
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1743,7 +1976,7 @@ function importAccounts(e) {
       for (const a of data) {
         if (!a.token) continue;
         if (accounts.find(x => x.token === a.token)) continue;
-        accounts.push({ id: genId(), token: a.token, label: a.label || '', username: a.username || 'Unknown', userId: a.userId || '', orbs: null, status: 'idle', quests: [], lastSync: null });
+        accounts.push({ id: genId(), token: a.token, label: a.label || '', username: a.username || 'Unknown', displayName: a.displayName || a.username || 'Unknown', userId: a.userId || '', avatarHash: a.avatarHash || null, orbs: null, status: 'idle', quests: [], lastSync: null });
         added++;
       }
       saveState();
