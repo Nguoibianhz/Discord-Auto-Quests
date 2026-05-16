@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HIEU TOOL — Discord Quest Farmer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-0: #03050a;
+  --bg-1: #070c14;
+  --bg-2: #0d1522;
+  --bg-3: #131d2e;
+  --bg-4: #1a2640;
+  --cyan: #00e5ff;
+  --cyan-dim: #0097aa;
+  --cyan-dark: #003844;
+  --violet: #7c3aed;
+  --violet-dim: #4c1d95;
+  --pink: #f472b6;
+  --green: #00ff88;
+  --green-dim: #00b861;
+  --amber: #fbbf24;
+  --red: #ef4444;
+  --red-dim: #7f1d1d;
+  --text-1: #e2e8f0;
+  --text-2: #94a3b8;
+  --text-3: #475569;
+  --border: rgba(0,229,255,0.15);
+  --border-bright: rgba(0,229,255,0.4);
+  --glow-cyan: 0 0 20px rgba(0,229,255,0.3);
+  --glow-violet: 0 0 20px rgba(124,58,237,0.4);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg-0);
+  color: var(--text-1);
+  min-height: 100vh;
+  cursor: none;
+  overflow-x: hidden;
+}
+
+/* CUSTOM CURSOR */
+#cursor {
+  position: fixed;
+  width: 20px; height: 20px;
+  border: 1.5px solid var(--cyan);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  transform: translate(-50%,-50%);
+  transition: width .15s, height .15s, border-color .15s, background .15s;
+  mix-blend-mode: screen;
+}
+#cursor-dot {
+  position: fixed;
+  width: 4px; height: 4px;
+  background: var(--cyan);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  transform: translate(-50%,-50%);
+}
+body:hover #cursor { opacity: 1; }
+body.clicking #cursor {
+  width: 14px; height: 14px;
+  background: rgba(0,229,255,0.2);
+}
+a, button, input, select, textarea, [role=button] { cursor: none; }
+
+/* GRID BG */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* SCAN LINE */
+body::after {
+  content: '';
+  position: fixed;
+  top: -100%;
+  left: 0; right: 0;
+  height: 200%;
+  background: linear-gradient(transparent 50%, rgba(0,0,0,0.03) 50%);
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 0;
+  animation: scan 8s linear infinite;
+}
+@keyframes scan { to { top: 0; } }
+
+#app { position: relative; z-index: 1; }
+
+/* HEADER */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(7,12,20,0.9);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  font-family: 'Orbitron', monospace;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: var(--cyan);
+  text-shadow: 0 0 20px rgba(0,229,255,0.6);
+}
+.logo span { color: var(--violet); }
+.header-stats {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+.hstat {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hstat strong { color: var(--cyan); font-size: 14px; }
+
+/* TABS */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-1);
+  padding: 0 24px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  transition: all .2s;
+  white-space: nowrap;
+  cursor: none;
+  position: relative;
+}
+.tab.active {
+  color: var(--cyan);
+  border-bottom-color: var(--cyan);
+}
+.tab:hover:not(.active) { color: var(--text-2); }
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  background: var(--violet);
+  border-radius: 50%;
+  font-size: 10px;
+  margin-left: 6px;
+  font-family: 'Share Tech Mono', monospace;
+  color: #fff;
+}
+
+/* PANELS */
+.panel { display: none; padding: 24px; }
+.panel.active { display: block; }
+
+/* SECTION TITLE */
+.section-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--cyan-dim);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, var(--border), transparent);
+}
+
+/* CARDS */
+.card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s, box-shadow .2s;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: var(--cyan);
+  opacity: 0.6;
+}
+.card:hover {
+  border-color: var(--border-bright);
+  box-shadow: var(--glow-cyan);
+}
+.card.violet::before { background: var(--violet); }
+.card.green::before { background: var(--green); }
+.card.amber::before { background: var(--amber); }
+.card.red::before { background: var(--red); }
+
+/* ACCOUNT CARD */
+.account-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 14px;
+  align-items: center;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+}
+.account-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: var(--cyan);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.account-card.active-run::before { opacity: 1; animation: pulse-border 1.5s ease-in-out infinite; }
+.account-card.success::before { background: var(--green); opacity: 1; }
+.account-card.failed::before { background: var(--red); opacity: 1; }
+@keyframes pulse-border {
+  0%,100% { opacity: 0.6; }
+  50% { opacity: 1; box-shadow: 4px 0 20px rgba(0,229,255,0.4); }
+}
+.account-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--violet-dim), var(--violet));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  border: 1.5px solid var(--border);
+  flex-shrink: 0;
+}
+.account-info { min-width: 0; }
+.account-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.account-id {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+.account-orbs {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  color: var(--violet);
+  text-align: right;
+}
+.account-status {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: 'Share Tech Mono', monospace;
+  margin-top: 2px;
+  text-align: right;
+}
+.account-actions { display: flex; gap: 8px; }
+
+/* BUTTONS */
+.btn {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border: 1px solid;
+  border-radius: 3px;
+  padding: 7px 14px;
+  cursor: none;
+  transition: all .2s;
+  background: transparent;
+  position: relative;
+  overflow: hidden;
+}
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.btn:hover::before { opacity: 0.08; }
+.btn:active { transform: scale(0.97); }
+
+.btn-cyan { color: var(--cyan); border-color: rgba(0,229,255,0.4); }
+.btn-cyan:hover { border-color: var(--cyan); box-shadow: 0 0 12px rgba(0,229,255,0.3); }
+.btn-violet { color: #a78bfa; border-color: rgba(124,58,237,0.4); }
+.btn-violet:hover { border-color: #7c3aed; box-shadow: var(--glow-violet); }
+.btn-green { color: var(--green); border-color: rgba(0,255,136,0.3); }
+.btn-green:hover { border-color: var(--green); box-shadow: 0 0 12px rgba(0,255,136,0.3); }
+.btn-red { color: var(--red); border-color: rgba(239,68,68,0.3); }
+.btn-red:hover { border-color: var(--red); box-shadow: 0 0 12px rgba(239,68,68,0.3); }
+.btn-amber { color: var(--amber); border-color: rgba(251,191,36,0.3); }
+.btn-amber:hover { border-color: var(--amber); }
+
+.btn-lg { padding: 10px 22px; font-size: 13px; }
+.btn-sm { padding: 5px 10px; font-size: 11px; }
+.btn-icon { padding: 7px 8px; }
+
+.btn-solid-cyan {
+  background: rgba(0,229,255,0.1);
+  color: var(--cyan);
+  border-color: var(--cyan);
+  box-shadow: 0 0 16px rgba(0,229,255,0.2);
+}
+.btn-solid-cyan:hover {
+  background: rgba(0,229,255,0.2);
+  box-shadow: 0 0 24px rgba(0,229,255,0.4);
+}
+.btn-solid-green {
+  background: rgba(0,255,136,0.1);
+  color: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 0 16px rgba(0,255,136,0.2);
+}
+.btn-solid-green:hover {
+  background: rgba(0,255,136,0.2);
+  box-shadow: 0 0 24px rgba(0,255,136,0.4);
+}
+
+/* FORM */
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--text-2);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.form-input {
+  width: 100%;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 10px 14px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  color: var(--text-1);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.form-input:focus {
+  border-color: var(--cyan-dim);
+  box-shadow: 0 0 12px rgba(0,229,255,0.15);
+}
+.form-input::placeholder { color: var(--text-3); }
+
+/* QUEST TABLE */
+.quest-table { width: 100%; border-collapse: collapse; }
+.quest-table th {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.quest-table td {
+  padding: 10px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(0,229,255,0.05);
+  vertical-align: middle;
+}
+.quest-table tr:last-child td { border-bottom: none; }
+.quest-table tr:hover td { background: rgba(0,229,255,0.03); }
+
+/* PROGRESS BAR */
+.progress-bar {
+  height: 3px;
+  background: var(--bg-4);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 1s ease;
+  background: linear-gradient(to right, var(--cyan-dim), var(--cyan));
+  box-shadow: 0 0 8px rgba(0,229,255,0.5);
+}
+.progress-fill.green {
+  background: linear-gradient(to right, var(--green-dim), var(--green));
+  box-shadow: 0 0 8px rgba(0,255,136,0.5);
+}
+
+/* STATUS BADGES */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+.badge-running { color: var(--cyan); border-color: rgba(0,229,255,0.4); background: rgba(0,229,255,0.08); }
+.badge-done { color: var(--green); border-color: rgba(0,255,136,0.4); background: rgba(0,255,136,0.08); }
+.badge-claimed { color: #a78bfa; border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); }
+.badge-failed { color: var(--red); border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); }
+.badge-skip { color: var(--text-3); border-color: var(--border); background: transparent; }
+.badge-idle { color: var(--text-2); border-color: var(--border); background: transparent; }
+
+/* PULSE DOT */
+.pulse-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.5); opacity: 0.4; }
+}
+
+/* LOG CONSOLE */
+.log-console {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 14px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  max-height: 280px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-4) transparent;
+}
+.log-console::-webkit-scrollbar { width: 4px; }
+.log-console::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 2px; }
+.log-entry { display: flex; gap: 10px; }
+.log-time { color: var(--text-3); flex-shrink: 0; }
+.log-msg { flex: 1; }
+.log-msg.info { color: var(--cyan-dim); }
+.log-msg.success { color: var(--green-dim); }
+.log-msg.error { color: var(--red); }
+.log-msg.warn { color: var(--amber); }
+.log-msg.muted { color: var(--text-3); }
+
+/* STAT GRID */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(to right, var(--cyan-dark), transparent);
+}
+.stat-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+.stat-value {
+  font-family: 'Orbitron', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--cyan);
+  line-height: 1;
+}
+.stat-value.violet { color: #a78bfa; }
+.stat-value.green { color: var(--green); }
+.stat-value.amber { color: var(--amber); }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3,5,10,0.85);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg-2);
+  border: 1px solid var(--border-bright);
+  border-radius: 4px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 0 60px rgba(0,229,255,0.15);
+  animation: modal-in .2s ease;
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(-20px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--cyan);
+}
+.modal-body { padding: 20px; }
+.modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* TOAST */
+#toast-container {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  padding: 10px 16px;
+  border-radius: 3px;
+  border: 1px solid;
+  background: var(--bg-2);
+  animation: toast-in .3s ease;
+  max-width: 280px;
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.toast.success { color: var(--green); border-color: rgba(0,255,136,0.4); }
+.toast.error { color: var(--red); border-color: rgba(239,68,68,0.4); }
+.toast.info { color: var(--cyan); border-color: rgba(0,229,255,0.4); }
+.toast.warn { color: var(--amber); border-color: rgba(251,191,36,0.4); }
+
+/* EMPTY STATE */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  gap: 12px;
+}
+.empty-icon { font-size: 40px; opacity: 0.3; }
+.empty-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+/* SCROLLBAR */
+* { scrollbar-width: thin; scrollbar-color: var(--bg-4) transparent; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 2px; }
+
+/* DIVIDER */
+.divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border), transparent);
+  margin: 20px 0;
+}
+
+/* TOKEN INPUT with eye toggle */
+.input-wrapper { position: relative; }
+.input-wrapper .form-input { padding-right: 44px; }
+.input-eye {
+  position: absolute;
+  right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-3);
+  font-size: 16px;
+  cursor: none;
+  padding: 4px;
+  transition: color .2s;
+}
+.input-eye:hover { color: var(--cyan); }
+
+/* CHECKBOX */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: none;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.checkbox-label input[type=checkbox] {
+  appearance: none;
+  width: 16px; height: 16px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-3);
+  cursor: none;
+  flex-shrink: 0;
+  transition: all .15s;
+  position: relative;
+}
+.checkbox-label input[type=checkbox]:checked {
+  background: rgba(0,229,255,0.2);
+  border-color: var(--cyan);
+}
+.checkbox-label input[type=checkbox]:checked::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 5px;
+  width: 4px; height: 8px;
+  border: 2px solid var(--cyan);
+  border-top: none; border-left: none;
+  transform: rotate(45deg);
+}
+
+/* QUEST RUNNER DETAIL */
+.runner-account {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.runner-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: none;
+}
+.runner-header:hover { background: rgba(0,229,255,0.03); }
+.runner-header .expand-icon { margin-left: auto; color: var(--text-3); transition: transform .2s; }
+.runner-header.expanded .expand-icon { transform: rotate(180deg); }
+.runner-quests { padding: 12px 16px; }
+
+/* GLITCH TEXT */
+.glitch {
+  position: relative;
+}
+.glitch::before, .glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+.glitch::before {
+  color: var(--pink);
+  animation: glitch1 3s infinite;
+  clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+}
+.glitch::after {
+  color: var(--cyan);
+  animation: glitch2 3s infinite;
+  clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+}
+@keyframes glitch1 {
+  0%,90%,100% { transform: translate(0); opacity: 0; }
+  92% { transform: translate(-2px, 1px); opacity: 0.8; }
+  94% { transform: translate(2px, -1px); opacity: 0.8; }
+  96% { transform: translate(0); opacity: 0; }
+}
+@keyframes glitch2 {
+  0%,90%,100% { transform: translate(0); opacity: 0; }
+  93% { transform: translate(2px, 1px); opacity: 0.8; }
+  95% { transform: translate(-2px, -1px); opacity: 0.8; }
+  97% { transform: translate(0); opacity: 0; }
+}
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  header { padding: 12px 16px; }
+  .header-stats { display: none; }
+  .logo { font-size: 14px; }
+  .panel { padding: 16px; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .account-card { grid-template-columns: auto 1fr auto; }
+  .account-actions { display: none; }
+  .account-card .show-mobile { display: flex; }
+  .tabs { padding: 0 16px; }
+  .tab { padding: 10px 14px; font-size: 12px; }
+}
+@media (max-width: 400px) {
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .stat-value { font-size: 18px; }
+}
+
+/* TOOLTIP */
+[title] { position: relative; }
+
+/* SELECT */
+select.form-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M6 8L0 0h12z' fill='%2300e5ff' opacity='.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  appearance: none;
+}
+
+/* BLINKING CARET */
+@keyframes blink { 50% { opacity: 0; } }
+.blink { animation: blink 1s step-end infinite; }
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div id="cursor"></div>
+<div id="cursor-dot"></div>
+
+<div id="app">
+
+<!-- HEADER -->
+<header>
+  <div class="logo glitch" data-text="HIEU⟨TOOL⟩">HIEU<span>⟨TOOL⟩</span></div>
+  <div class="header-stats">
+    <div class="hstat">ACCOUNTS <strong id="hstat-accounts">0</strong></div>
+    <div class="hstat">TOTAL ORBS <strong id="hstat-orbs">—</strong></div>
+    <div class="hstat">RUNNING <strong id="hstat-running">0</strong></div>
+  </div>
+  <button class="btn btn-solid-cyan btn-sm" onclick="openAddModal()">+ ADD ACCOUNT</button>
+</header>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('accounts')">ACCOUNTS <span class="tab-badge" id="tab-badge-accounts">0</span></button>
+  <button class="tab" onclick="switchTab('runner')">QUEST RUNNER</button>
+  <button class="tab" onclick="switchTab('dashboard')">DASHBOARD</button>
+  <button class="tab" onclick="switchTab('logs')">LOGS</button>
+</div>
+
+<!-- === ACCOUNTS PANEL === -->
+<div id="panel-accounts" class="panel active">
+  <div class="section-title">REGISTERED ACCOUNTS</div>
+
+  <div id="accounts-list">
+    <div class="empty">
+      <div class="empty-icon">⬡</div>
+      <div class="empty-text">NO ACCOUNTS REGISTERED<br>CLICK "+ ADD ACCOUNT" TO BEGIN</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap;">
+    <button class="btn btn-solid-cyan btn-lg" onclick="openAddModal()">+ ADD ACCOUNT</button>
+    <button class="btn btn-violet" onclick="fetchAllBalances()" id="btn-fetch-all">◈ SYNC ALL BALANCES</button>
+    <button class="btn btn-amber" onclick="exportAccounts()">↑ EXPORT</button>
+    <button class="btn btn-sm" onclick="document.getElementById('import-file').click()" style="color:var(--text-2);border-color:var(--border)">↓ IMPORT</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importAccounts(event)">
+  </div>
+</div>
+
+<!-- === RUNNER PANEL === -->
+<div id="panel-runner" class="panel">
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">TOTAL ACCOUNTS</div>
+      <div class="stat-value" id="r-stat-accounts">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">QUESTS FOUND</div>
+      <div class="stat-value violet" id="r-stat-quests">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">COMPLETED</div>
+      <div class="stat-value green" id="r-stat-done">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">ORBS GAINED</div>
+      <div class="stat-value amber" id="r-stat-orbs">0</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; align-items: center;">
+    <button class="btn btn-solid-green btn-lg" id="btn-run-all" onclick="runAllAccounts()">▶ RUN ALL ACCOUNTS</button>
+    <button class="btn btn-cyan" onclick="runSelected()">▷ RUN SELECTED</button>
+    <button class="btn btn-red" id="btn-stop" onclick="stopAll()" style="display:none">■ STOP ALL</button>
+    <label class="checkbox-label" style="margin-left: auto;">
+      <input type="checkbox" id="opt-autoclaim" checked>
+      AUTO-CLAIM REWARDS
+    </label>
+  </div>
+
+  <div class="section-title">ACCOUNT QUEST STATUS</div>
+  <div id="runner-list">
+    <div class="empty">
+      <div class="empty-icon">⬡</div>
+      <div class="empty-text">ADD ACCOUNTS FIRST<br>THEN RUN TO SEE QUEST STATUS</div>
+    </div>
+  </div>
+</div>
+
+<!-- === DASHBOARD PANEL === -->
+<div id="panel-dashboard" class="panel">
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">TOTAL ACCOUNTS</div>
+      <div class="stat-value" id="d-stat-accounts">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">TOTAL ORBS</div>
+      <div class="stat-value amber" id="d-stat-orbs">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">QUESTS DONE</div>
+      <div class="stat-value green" id="d-stat-done">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">TOTAL RUNS</div>
+      <div class="stat-value violet" id="d-stat-runs">0</div>
+    </div>
+  </div>
+
+  <div class="section-title">RECENT ACTIVITY</div>
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <table class="quest-table" style="min-width: 500px;">
+      <thead>
+        <tr>
+          <th>ACCOUNT</th>
+          <th>QUEST</th>
+          <th>REWARD</th>
+          <th>STATUS</th>
+          <th>TIME</th>
+        </tr>
+      </thead>
+      <tbody id="activity-log"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- === LOGS PANEL === -->
+<div id="panel-logs" class="panel">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+    <div class="section-title" style="margin-bottom: 0;">SYSTEM LOG</div>
+    <div style="display: flex; gap: 8px;">
+      <select class="form-input" id="log-filter" style="width: auto; font-size: 11px; padding: 5px 28px 5px 10px;" onchange="filterLogs()">
+        <option value="all">ALL</option>
+        <option value="info">INFO</option>
+        <option value="success">SUCCESS</option>
+        <option value="error">ERROR</option>
+        <option value="warn">WARN</option>
+      </select>
+      <button class="btn btn-sm btn-red" onclick="clearLogs()">✕ CLEAR</button>
+    </div>
+  </div>
+  <div class="log-console" id="log-console" style="max-height: 600px;"></div>
+</div>
+
+</div><!-- /#app -->
+
+<!-- ADD ACCOUNT MODAL -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">+ NEW ACCOUNT</div>
+      <button class="btn btn-sm btn-red btn-icon" onclick="closeModal('modal-add')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">DISCORD TOKEN</label>
+        <div class="input-wrapper">
+          <input type="password" class="form-input" id="inp-token" placeholder="Paste your Discord token...">
+          <button class="input-eye" onclick="toggleEye('inp-token', this)">👁</button>
+        </div>
+        <div style="margin-top: 6px; font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--text-3);">
+          ⚠ TOKEN STORED LOCALLY IN YOUR BROWSER. NEVER SHARE.
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">LABEL (OPTIONAL)</label>
+        <input type="text" class="form-input" id="inp-label" placeholder="e.g. Main Account">
+      </div>
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="inp-verify" checked>
+          VERIFY TOKEN & FETCH INFO ON ADD
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sm" onclick="closeModal('modal-add')" style="color:var(--text-2);border-color:var(--border)">CANCEL</button>
+      <button class="btn btn-solid-cyan" onclick="addAccount()" id="btn-add-confirm">ADD ACCOUNT</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" style="color: var(--red);">⚠ DELETE ACCOUNT</div>
+      <button class="btn btn-sm btn-red btn-icon" onclick="closeModal('modal-delete')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size: 14px; color: var(--text-2); line-height: 1.6;">
+        Delete account <strong id="del-account-name" style="color: var(--text-1);"></strong>?<br>
+        <span style="font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--text-3);">This cannot be undone. Token will be removed from local storage.</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sm" onclick="closeModal('modal-delete')" style="color:var(--text-2);border-color:var(--border)">CANCEL</button>
+      <button class="btn btn-red" onclick="confirmDelete()">DELETE</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<script>
+// ============ CURSOR ============
+const cursor = document.getElementById('cursor');
+const cursorDot = document.getElementById('cursor-dot');
+let mx = -100, my = -100, cx = -100, cy = -100;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+document.addEventListener('mousedown', () => document.body.classList.add('clicking'));
+document.addEventListener('mouseup', () => document.body.classList.remove('clicking'));
+function animCursor() {
+  cx += (mx - cx) * 0.18;
+  cy += (my - cy) * 0.18;
+  cursor.style.left = cx + 'px'; cursor.style.top = cy + 'px';
+  cursorDot.style.left = mx + 'px'; cursorDot.style.top = my + 'px';
+  requestAnimationFrame(animCursor);
+}
+animCursor();
+
+// ============ STATE ============
+let accounts = [];
+let globalLogs = [];
+let activityData = [];
+let pendingDeleteId = null;
+let runningCount = 0;
+let totalRuns = 0;
+let totalOrbsGained = 0;
+let questsDone = 0;
+let stopRequested = false;
+
+// Load from localStorage
+function loadState() {
+  try {
+    const saved = localStorage.getItem('hieu_accounts');
+    if (saved) accounts = JSON.parse(saved);
+  } catch {}
+  try {
+    const saved = localStorage.getItem('hieu_activity');
+    if (saved) activityData = JSON.parse(saved).slice(0, 100);
+  } catch {}
+}
+function saveState() {
+  localStorage.setItem('hieu_accounts', JSON.stringify(accounts));
+  localStorage.setItem('hieu_activity', JSON.stringify(activityData.slice(0, 100)));
+}
+loadState();
+
+// ============ TABS ============
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+  if (tab === 'runner') renderRunner();
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'logs') renderLogsPanel();
+}
+
+// ============ LOG ============
+function log(msg, type = 'info') {
+  const now = new Date();
+  const time = now.toTimeString().slice(0, 8);
+  globalLogs.unshift({ time, msg, type });
+  if (globalLogs.length > 500) globalLogs.pop();
+  const console_el = document.getElementById('log-console');
+  if (console_el) renderLogsPanel();
+}
+function renderLogsPanel() {
+  const filter = document.getElementById('log-filter')?.value || 'all';
+  const el = document.getElementById('log-console');
+  if (!el) return;
+  const filtered = filter === 'all' ? globalLogs : globalLogs.filter(l => l.type === filter);
+  el.innerHTML = filtered.map(l =>
+    `<div class="log-entry"><span class="log-time">[${l.time}]</span><span class="log-msg ${l.type}">${escHtml(l.msg)}</span></div>`
+  ).join('') || '<div class="log-entry"><span class="log-msg muted">— NO LOGS —</span></div>';
+}
+function filterLogs() { renderLogsPanel(); }
+function clearLogs() { globalLogs = []; renderLogsPanel(); toast('Logs cleared', 'info'); }
+
+// ============ TOAST ============
+function toast(msg, type = 'info', duration = 3000) {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(20px)';
+    el.style.transition = 'all .3s';
+    setTimeout(() => el.remove(), 300);
+  }, duration);
+}
+
+// ============ MODAL ============
+function openAddModal() {
+  document.getElementById('inp-token').value = '';
+  document.getElementById('inp-label').value = '';
+  document.getElementById('modal-add').classList.add('open');
+  setTimeout(() => document.getElementById('inp-token').focus(), 100);
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// ============ ACCOUNTS ============
+function genId() { return 'acc_' + Math.random().toString(36).slice(2, 10); }
+function escHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function addAccount() {
+  const token = document.getElementById('inp-token').value.trim();
+  const label = document.getElementById('inp-label').value.trim();
+  const verify = document.getElementById('inp-verify').checked;
+  if (!token) { toast('Token required!', 'error'); return; }
+  if (accounts.find(a => a.token === token)) { toast('Token already added!', 'warn'); return; }
+
+  const btn = document.getElementById('btn-add-confirm');
+  btn.textContent = 'VERIFYING...';
+  btn.disabled = true;
+
+  const acc = { id: genId(), token, label, username: label || 'Unknown', userId: '...', orbs: null, status: 'idle', quests: [], lastSync: null };
+
+  if (verify) {
+    try {
+      const info = await discordGet(token, '/users/@me');
+      acc.username = info.username + '#' + (info.discriminator || '0');
+      acc.userId = info.id;
+      acc.label = label || acc.username;
+      log(`Account verified: ${acc.username} (${acc.userId})`, 'success');
+      toast(`✔ ${acc.username} added`, 'success');
+    } catch(e) {
+      log(`Failed to verify token: ${e.message}`, 'error');
+      toast('Invalid token or API error', 'error');
+      btn.textContent = 'ADD ACCOUNT';
+      btn.disabled = false;
+      return;
+    }
+  } else {
+    acc.label = label || 'Account #' + (accounts.length + 1);
+    toast('Account added (unverified)', 'warn');
+    log(`Account added without verification`, 'warn');
+  }
+
+  accounts.push(acc);
+  saveState();
+  renderAccounts();
+  updateHeaderStats();
+  closeModal('modal-add');
+  btn.textContent = 'ADD ACCOUNT';
+  btn.disabled = false;
+}
+
+function deleteAccount(id) {
+  const acc = accounts.find(a => a.id === id);
+  if (!acc) return;
+  pendingDeleteId = id;
+  document.getElementById('del-account-name').textContent = acc.label || acc.username;
+  document.getElementById('modal-delete').classList.add('open');
+}
+function confirmDelete() {
+  if (!pendingDeleteId) return;
+  const acc = accounts.find(a => a.id === pendingDeleteId);
+  accounts = accounts.filter(a => a.id !== pendingDeleteId);
+  saveState();
+  renderAccounts();
+  updateHeaderStats();
+  closeModal('modal-delete');
+  log(`Removed account: ${acc?.username || pendingDeleteId}`, 'warn');
+  toast('Account removed', 'warn');
+  pendingDeleteId = null;
+}
+
+function renderAccounts() {
+  const list = document.getElementById('accounts-list');
+  document.getElementById('tab-badge-accounts').textContent = accounts.length;
+  document.getElementById('r-stat-accounts').textContent = accounts.length;
+  document.getElementById('d-stat-accounts').textContent = accounts.length;
+  document.getElementById('hstat-accounts').textContent = accounts.length;
+  if (!accounts.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">⬡</div><div class="empty-text">NO ACCOUNTS REGISTERED<br>CLICK "+ ADD ACCOUNT" TO BEGIN</div></div>`;
+    return;
+  }
+  list.innerHTML = accounts.map(acc => {
+    const avatar = (acc.username || '?').slice(0, 2).toUpperCase();
+    const statusCls = acc.status === 'running' ? 'active-run' : acc.status === 'done' ? 'success' : acc.status === 'error' ? 'failed' : '';
+    const orbsText = acc.orbs !== null ? `🔮 ${acc.orbs.toLocaleString()}` : '—';
+    const lastSync = acc.lastSync ? new Date(acc.lastSync).toLocaleTimeString() : 'Never';
+    return `
+    <div class="account-card ${statusCls}" id="card-${acc.id}" style="margin-bottom: 8px;">
+      <div class="account-avatar">${avatar}</div>
+      <div class="account-info">
+        <div class="account-name">${escHtml(acc.label || acc.username)}</div>
+        <div class="account-id">${escHtml(acc.userId || 'ID not fetched')} · Sync: ${lastSync}</div>
+      </div>
+      <div>
+        <div class="account-orbs">${orbsText}</div>
+        <div class="account-status">${getStatusBadgeText(acc.status)}</div>
+      </div>
+      <div class="account-actions">
+        <button class="btn btn-sm btn-cyan" onclick="fetchBalance('${acc.id}')" title="Sync Balance">◈</button>
+        <button class="btn btn-sm btn-green" onclick="runSingleAccount('${acc.id}')" title="Run Quests">▶</button>
+        <button class="btn btn-sm btn-red" onclick="deleteAccount('${acc.id}')" title="Delete">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getStatusBadgeText(status) {
+  const map = { idle: '● IDLE', running: '● RUNNING', done: '● DONE', error: '● ERROR', syncing: '● SYNCING' };
+  return map[status] || status;
+}
+
+// ============ DISCORD API ============
+async function discordGet(token, path) {
+  const res = await fetch('https://discord.com/api/v10' + path, {
+    headers: {
+      'Authorization': token,
+      'Content-Type': 'application/json',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9215 Chrome/138.0.7204.251 Electron/37.6.0 Safari/537.36',
+      'X-Discord-Locale': 'en-US',
+      'X-Discord-Timezone': 'Asia/Saigon',
+    }
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+async function discordPost(token, path, body) {
+  const res = await fetch('https://discord.com/api/v10' + path, {
+    method: 'POST',
+    headers: {
+      'Authorization': token,
+      'Content-Type': 'application/json',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9215 Chrome/138.0.7204.251 Electron/37.6.0 Safari/537.36',
+      'X-Discord-Locale': 'en-US',
+      'X-Discord-Timezone': 'Asia/Saigon',
+    },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+// ============ BALANCE ============
+async function fetchBalance(id) {
+  const acc = accounts.find(a => a.id === id);
+  if (!acc) return;
+  acc.status = 'syncing';
+  renderAccounts();
+  log(`Fetching balance for ${acc.username}...`, 'info');
+  try {
+    const data = await discordGet(acc.token, '/users/@me/virtual-currency/balance');
+    acc.orbs = data.balance;
+    acc.lastSync = Date.now();
+    acc.status = 'idle';
+    log(`[${acc.username}] Orbs: ${acc.orbs}`, 'success');
+    toast(`${acc.username}: 🔮 ${acc.orbs} Orbs`, 'success');
+  } catch(e) {
+    acc.status = 'error';
+    log(`[${acc.username}] Balance error: ${e.message}`, 'error');
+    toast(`Balance error: ${e.message}`, 'error');
+  }
+  saveState();
+  renderAccounts();
+  updateHeaderStats();
+  updateDashboardStats();
+}
+
+async function fetchAllBalances() {
+  if (!accounts.length) { toast('No accounts', 'warn'); return; }
+  log('Syncing all balances...', 'info');
+  for (const acc of accounts) await fetchBalance(acc.id);
+  toast('All balances synced', 'success');
+}
+
+// ============ QUEST LOGIC ============
+const TASK_ICONS = {
+  WATCH_VIDEO: '🎬', WATCH_VIDEO_ON_MOBILE: '🎬', PLAY_ON_DESKTOP: '🎮',
+  STREAM_ON_DESKTOP: '📡', PLAY_ACTIVITY: '🕹', PLAY_ON_XBOX: '🎯', PLAY_ON_PLAYSTATION: '🎯'
+};
+const TASK_PRIORITY = ['PLAY_ON_DESKTOP','WATCH_VIDEO','WATCH_VIDEO_ON_MOBILE','STREAM_ON_DESKTOP','PLAY_ACTIVITY','PLAY_ON_XBOX','PLAY_ON_PLAYSTATION'];
+
+function detectTaskType(quest) {
+  const tasks = quest.config?.task_config_v2?.tasks ?? quest.config?.task_config?.tasks;
+  if (!tasks) return null;
+  return TASK_PRIORITY.find(t => tasks[t] != null) || null;
+}
+function getTarget(quest, taskType) {
+  if (!taskType) return 900;
+  const tasks = quest.config?.task_config_v2?.tasks ?? quest.config?.task_config?.tasks;
+  return tasks?.[taskType]?.target ?? 900;
+}
+function getProgress(quest, taskType) {
+  if (!taskType) return 0;
+  return quest.user_status?.progress?.[taskType]?.value ?? 0;
+}
+function getRemaining(quest, taskType) {
+  return Math.max(0, getTarget(quest, taskType) - getProgress(quest, taskType));
+}
+function getRewardLabel(quest) {
+  const rewards = quest.config?.rewards_config?.rewards;
+  if (!rewards?.length) return 'Unknown';
+  if (rewards[0].orb_quantity) return `${rewards[0].orb_quantity} Orbs`;
+  return rewards[0].messages?.name ?? 'Unknown';
+}
+function getQuestName(quest) {
+  return quest.config?.messages?.quest_name?.trim() || quest.id;
+}
+function isExpired(quest) {
+  return Date.now() > new Date(quest.config?.expires_at).getTime();
+}
+function isCompleted(quest) { return Boolean(quest.user_status?.completed_at); }
+function isClaimed(quest) { return Boolean(quest.user_status?.claimed_at); }
+function isEnrolled(quest) { return Boolean(quest.user_status?.enrolled_at); }
+
+async function loadQuests(token) {
+  const data = await discordGet(token, '/quests/@me');
+  return data.quests || [];
+}
+
+async function enrollQuest(token, questId) {
+  return discordPost(token, `/quests/${questId}/enroll`, {
+    location: 11, is_targeted: false, metadata_raw: null
+  });
+}
+
+async function claimReward(token, questId) {
+  return discordPost(token, `/quests/${questId}/claim-reward`, {});
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// Per-account runner state for live UI
+let runnerState = {}; // { accId: { quests: [{ id, name, taskType, target, progress, status, reward }] } }
+
+async function executeQuest(token, quest, accId) {
+  const taskType = detectTaskType(quest);
+  const qId = quest.id;
+  const name = getQuestName(quest);
+
+  const setStatus = (s, progress) => {
+    if (runnerState[accId]) {
+      const q = runnerState[accId].quests.find(x => x.id === qId);
+      if (q) { q.status = s; if (progress !== undefined) q.progress = progress; }
+      renderRunnerList();
+    }
+  };
+
+  if (!taskType) {
+    setStatus('skip');
+    log(`[${accId}] ${name}: unsupported task type`, 'warn');
+    return;
+  }
+
+  // Enroll if needed
+  if (!isEnrolled(quest)) {
+    try {
+      const res = await discordPost(token, `/quests/${qId}/enroll`, { location: 11, is_targeted: false, metadata_raw: null });
+      quest.user_status = res;
+    } catch(e) {
+      log(`[${accId}] Enroll failed: ${e.message}`, 'error');
+    }
+  }
+
+  setStatus('running', getProgress(quest, taskType));
+
+  if (taskType === 'WATCH_VIDEO' || taskType === 'WATCH_VIDEO_ON_MOBILE') {
+    const enrolledAt = new Date(quest.user_status?.enrolled_at || Date.now()).getTime();
+    const target = getTarget(quest, taskType);
+    let done = getProgress(quest, taskType);
+
+    while (done < target) {
+      if (stopRequested) { setStatus('skip'); return; }
+      const maxAllowed = Math.floor((Date.now() - enrolledAt) / 1000) + 10;
+      const diff = maxAllowed - done;
+      if (diff >= 7) {
+        const next = Math.min(target, done + 7);
+        try {
+          const res = await discordPost(token, `/quests/${qId}/video-progress`, { timestamp: next + Math.random() });
+          quest.user_status = res;
+          done = next;
+          setStatus('running', done);
+        } catch(e) { log(`[${accId}] Video progress error: ${e.message}`, 'error'); break; }
+      }
+      if (done >= target) break;
+      await sleep(1000);
+    }
+    // Final
+    try { await discordPost(token, `/quests/${qId}/video-progress`, { timestamp: target }); } catch {}
+
+  } else if (taskType === 'PLAY_ON_DESKTOP') {
+    const taskDef = (quest.config?.task_config_v2?.tasks ?? quest.config?.task_config?.tasks)?.[taskType];
+    const appId = taskDef?.applications?.[0]?.id ?? quest.config?.application?.id;
+    const target = getTarget(quest, taskType);
+    let prog = getProgress(quest, taskType);
+
+    while (!isCompleted(quest)) {
+      if (stopRequested) { setStatus('skip'); return; }
+      try {
+        const res = await discordPost(token, `/quests/${qId}/heartbeat`, { application_id: appId, terminal: false });
+        quest.user_status = res;
+        prog = getProgress(quest, taskType);
+        setStatus('running', prog);
+        if (isCompleted(quest)) break;
+      } catch(e) { log(`[${accId}] Heartbeat error: ${e.message}`, 'error'); break; }
+      await sleep(60000);
+    }
+    try { await discordPost(token, `/quests/${qId}/heartbeat`, { application_id: appId, terminal: true }); } catch {}
+    setStatus('done', target);
+  } else {
+    setStatus('skip');
+    log(`[${accId}] ${name}: task type ${taskType} skipped`, 'muted');
+    return;
+  }
+
+  setStatus('done', getTarget(quest, taskType));
+
+  // Claim
+  if (document.getElementById('opt-autoclaim')?.checked) {
+    try {
+      await discordPost(token, `/quests/${qId}/claim-reward`, {});
+      setStatus('claimed');
+      const reward = getRewardLabel(quest);
+      log(`[${accId}] ★ Claimed: ${name} — ${reward}`, 'success');
+      addActivity(accId, name, reward, 'claimed');
+      questsDone++;
+      updateDashboardStats();
+    } catch(e) {
+      log(`[${accId}] Claim error: ${e.message}`, 'warn');
+    }
+  }
+}
+
+// ============ RUNNER ============
+async function runAccount(accId) {
+  const acc = accounts.find(a => a.id === accId);
+  if (!acc) return;
+  acc.status = 'running';
+  runningCount++;
+  updateHeaderStats();
+  renderAccounts();
+
+  log(`[${acc.username}] Loading quests...`, 'info');
+
+  try {
+    const allQuests = await loadQuests(acc.token);
+    const pending = allQuests.filter(q => q.id !== '1412491570820812933' && !isCompleted(q) && !isExpired(q));
+    const claimable = allQuests.filter(q => isCompleted(q) && !isClaimed(q));
+
+    // Claim existing completed
+    for (const q of claimable) {
+      try {
+        await discordPost(acc.token, `/quests/${q.id}/claim-reward`, {});
+        log(`[${acc.username}] Auto-claimed: ${getQuestName(q)}`, 'success');
+      } catch {}
+    }
+
+    // Setup runner state
+    runnerState[accId] = {
+      username: acc.username,
+      quests: pending.map(q => {
+        const tt = detectTaskType(q);
+        return {
+          id: q.id,
+          name: getQuestName(q),
+          taskType: tt,
+          icon: TASK_ICONS[tt] || '❓',
+          target: getTarget(q, tt),
+          progress: getProgress(q, tt),
+          status: 'queued',
+          reward: getRewardLabel(q)
+        };
+      })
+    };
+
+    document.getElementById('r-stat-quests').textContent =
+      parseInt(document.getElementById('r-stat-quests').textContent || 0) + pending.length;
+
+    renderRunnerList();
+    log(`[${acc.username}] Found ${pending.length} pending quests`, 'info');
+
+    if (pending.length === 0) {
+      log(`[${acc.username}] No pending quests!`, 'muted');
+      acc.status = 'done';
+    } else {
+      for (const q of pending) {
+        if (stopRequested) break;
+        await executeQuest(acc.token, q, accId);
+      }
+      acc.status = 'done';
+      log(`[${acc.username}] All quests completed`, 'success');
+    }
+
+    // Refresh balance
+    try {
+      const bal = await discordGet(acc.token, '/users/@me/virtual-currency/balance');
+      const gained = acc.orbs !== null ? bal.balance - acc.orbs : 0;
+      if (gained > 0) {
+        totalOrbsGained += gained;
+        log(`[${acc.username}] Orbs +${gained} (total: ${bal.balance})`, 'success');
+      }
+      acc.orbs = bal.balance;
+      acc.lastSync = Date.now();
+    } catch {}
+
+  } catch(e) {
+    acc.status = 'error';
+    log(`[${acc.username}] Error: ${e.message}`, 'error');
+    toast(`${acc.username} error: ${e.message}`, 'error');
+  }
+
+  runningCount = Math.max(0, runningCount - 1);
+  saveState();
+  renderAccounts();
+  updateHeaderStats();
+  updateDashboardStats();
+  renderRunnerList();
+  totalRuns++;
+  document.getElementById('d-stat-runs').textContent = totalRuns;
+}
+
+async function runSingleAccount(id) {
+  stopRequested = false;
+  switchTabById('runner');
+  await runAccount(id);
+}
+
+async function runAllAccounts() {
+  if (!accounts.length) { toast('No accounts!', 'warn'); return; }
+  stopRequested = false;
+  document.getElementById('btn-run-all').disabled = true;
+  document.getElementById('btn-stop').style.display = 'inline-block';
+  switchTabById('runner');
+
+  for (const acc of accounts) {
+    if (stopRequested) break;
+    await runAccount(acc.id);
+  }
+
+  document.getElementById('btn-run-all').disabled = false;
+  document.getElementById('btn-stop').style.display = 'none';
+  toast('All accounts finished!', 'success');
+  log('=== ALL ACCOUNTS FINISHED ===', 'success');
+}
+
+async function runSelected() {
+  const checked = Array.from(document.querySelectorAll('.acc-check:checked')).map(c => c.dataset.id);
+  if (!checked.length) { toast('No accounts selected', 'warn'); return; }
+  stopRequested = false;
+  for (const id of checked) await runAccount(id);
+}
+
+function stopAll() {
+  stopRequested = true;
+  toast('Stop requested...', 'warn');
+  log('Stop requested by user', 'warn');
+  document.getElementById('btn-stop').style.display = 'none';
+  document.getElementById('btn-run-all').disabled = false;
+}
+
+function switchTabById(tabId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  const tabBtn = Array.from(document.querySelectorAll('.tab')).find(t => t.getAttribute('onclick')?.includes(tabId));
+  if (tabBtn) tabBtn.classList.add('active');
+  const panel = document.getElementById('panel-' + tabId);
+  if (panel) panel.classList.add('active');
+  if (tabId === 'runner') renderRunner();
+}
+
+// ============ RENDER RUNNER ============
+function renderRunner() {
+  const list = document.getElementById('runner-list');
+  if (!accounts.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">⬡</div><div class="empty-text">ADD ACCOUNTS FIRST</div></div>`;
+    return;
+  }
+  renderRunnerList();
+}
+
+function renderRunnerList() {
+  const list = document.getElementById('runner-list');
+  if (!list) return;
+
+  const accCards = accounts.map(acc => {
+    const rs = runnerState[acc.id];
+    const statusCls = acc.status === 'running' ? 'active-run' : acc.status === 'done' ? 'success' : acc.status === 'error' ? 'failed' : '';
+    const orbText = acc.orbs !== null ? `🔮 ${acc.orbs.toLocaleString()}` : '—';
+
+    let questsHtml = '';
+    if (rs && rs.quests.length > 0) {
+      questsHtml = `<div class="runner-quests">
+        <table class="quest-table" style="font-size:12px;">
+          <thead><tr><th></th><th>QUEST</th><th>TYPE</th><th>REWARD</th><th>PROGRESS</th><th>STATUS</th></tr></thead>
+          <tbody>
+          ${rs.quests.map(q => {
+            const pct = q.target > 0 ? Math.min(100, Math.round((q.progress / q.target) * 100)) : 0;
+            const badge = statusBadge(q.status);
+            return `<tr>
+              <td><input type="checkbox" class="acc-check" data-id="${acc.id}" style="accent-color:var(--cyan)"></td>
+              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(q.name)}">${escHtml(q.name.slice(0,28))}${q.name.length>28?'..':''}</td>
+              <td style="text-align:center">${q.icon}</td>
+              <td style="color:var(--pink);font-family:'Share Tech Mono',monospace;font-size:11px">${escHtml(q.reward)}</td>
+              <td style="min-width:100px">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <div class="progress-bar" style="flex:1"><div class="progress-fill ${q.status==='claimed'||q.status==='done'?'green':''}" style="width:${pct}%"></div></div>
+                  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-3)">${pct}%</span>
+                </div>
+              </td>
+              <td>${badge}</td>
+            </tr>`;
+          }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    } else if (acc.status === 'running') {
+      questsHtml = `<div style="padding:12px 16px;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--cyan-dim)">Loading quests...</div>`;
+    }
+
+    return `
+    <div class="runner-account ${statusCls}" id="runner-${acc.id}">
+      <div class="runner-header">
+        <div class="account-avatar" style="width:32px;height:32px;font-size:12px">${(acc.username||'?').slice(0,2).toUpperCase()}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(acc.label||acc.username)}</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-3)">${escHtml(acc.userId||'')}</div>
+        </div>
+        <div style="text-align:right;margin-right:12px">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--violet)">${orbText}</div>
+          <div style="font-size:10px;color:var(--text-3);font-family:'Share Tech Mono',monospace">${rs ? rs.quests.length + ' quests' : 'not run'}</div>
+        </div>
+        ${getStatusBadge(acc.status)}
+      </div>
+      ${questsHtml}
+    </div>`;
+  }).join('');
+
+  list.innerHTML = accCards;
+}
+
+function getStatusBadge(s) {
+  const map = {
+    idle: `<span class="badge badge-idle">IDLE</span>`,
+    running: `<span class="badge badge-running"><span class="pulse-dot"></span> RUNNING</span>`,
+    done: `<span class="badge badge-done">✔ DONE</span>`,
+    error: `<span class="badge badge-failed">✖ ERROR</span>`,
+    syncing: `<span class="badge badge-idle">⟳ SYNC</span>`
+  };
+  return map[s] || `<span class="badge badge-idle">${s}</span>`;
+}
+
+function statusBadge(s) {
+  const map = {
+    queued: `<span class="badge badge-idle">QUEUE</span>`,
+    running: `<span class="badge badge-running"><span class="pulse-dot"></span> RUN</span>`,
+    done: `<span class="badge badge-done">✔ DONE</span>`,
+    claimed: `<span class="badge badge-claimed">★ CLAIMED</span>`,
+    failed: `<span class="badge badge-failed">✖ FAIL</span>`,
+    skip: `<span class="badge badge-skip">⊘ SKIP</span>`
+  };
+  return map[s] || `<span class="badge badge-idle">${s}</span>`;
+}
+
+// ============ DASHBOARD ============
+function updateDashboardStats() {
+  const total = accounts.reduce((s, a) => s + (a.orbs || 0), 0);
+  const orbEl = document.getElementById('d-stat-orbs');
+  if (orbEl) orbEl.textContent = total.toLocaleString();
+  document.getElementById('hstat-orbs').textContent = total > 0 ? total.toLocaleString() : '—';
+  document.getElementById('d-stat-done').textContent = questsDone;
+  document.getElementById('r-stat-done').textContent = questsDone;
+  document.getElementById('r-stat-orbs').textContent = totalOrbsGained;
+  document.getElementById('hstat-running').textContent = runningCount;
+}
+
+function addActivity(accId, questName, reward, status) {
+  const acc = accounts.find(a => a.id === accId);
+  activityData.unshift({
+    account: acc?.username || accId,
+    quest: questName,
+    reward,
+    status,
+    time: new Date().toLocaleTimeString()
+  });
+  if (activityData.length > 100) activityData.pop();
+  saveState();
+  renderDashboard();
+}
+
+function renderDashboard() {
+  updateDashboardStats();
+  const tbody = document.getElementById('activity-log');
+  if (!tbody) return;
+  if (!activityData.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-3);font-family:'Share Tech Mono',monospace;font-size:12px">— NO ACTIVITY YET —</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = activityData.slice(0, 50).map(a => {
+    const badge = a.status === 'claimed' ? `<span class="badge badge-claimed">★ CLAIMED</span>` : `<span class="badge badge-done">✔ DONE</span>`;
+    return `<tr>
+      <td style="color:var(--text-2);font-size:12px">${escHtml(a.account)}</td>
+      <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(a.quest)}</td>
+      <td style="color:var(--pink);font-family:'Share Tech Mono',monospace;font-size:11px">${escHtml(a.reward)}</td>
+      <td>${badge}</td>
+      <td style="color:var(--text-3);font-family:'Share Tech Mono',monospace;font-size:11px">${a.time}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ============ UTILS ============
+function updateHeaderStats() {
+  document.getElementById('hstat-accounts').textContent = accounts.length;
+  document.getElementById('hstat-running').textContent = runningCount;
+  document.getElementById('tab-badge-accounts').textContent = accounts.length;
+  document.getElementById('r-stat-accounts').textContent = accounts.length;
+  document.getElementById('d-stat-accounts').textContent = accounts.length;
+}
+
+function toggleEye(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+function exportAccounts() {
+  const data = accounts.map(a => ({ token: a.token, label: a.label, username: a.username, userId: a.userId }));
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'hieu-accounts.json';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Exported!', 'success');
+}
+
+function importAccounts(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      let added = 0;
+      for (const a of data) {
+        if (!a.token) continue;
+        if (accounts.find(x => x.token === a.token)) continue;
+        accounts.push({ id: genId(), token: a.token, label: a.label || '', username: a.username || 'Unknown', userId: a.userId || '', orbs: null, status: 'idle', quests: [], lastSync: null });
+        added++;
+      }
+      saveState();
+      renderAccounts();
+      updateHeaderStats();
+      toast(`Imported ${added} accounts`, 'success');
+      log(`Imported ${added} accounts from file`, 'success');
+    } catch { toast('Import failed!', 'error'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ============ INIT ============
+renderAccounts();
+updateHeaderStats();
+updateDashboardStats();
+renderDashboard();
+log('HIEU TOOL initialized. Ready.', 'success');
+log('All data stored locally in your browser — your tokens never leave your device.', 'muted');
+
+// Clock update
+setInterval(() => {
+  const el = document.getElementById('hstat-running');
+  if (el) el.textContent = runningCount;
+}, 2000);
+</script>
+</body>
+</html>
